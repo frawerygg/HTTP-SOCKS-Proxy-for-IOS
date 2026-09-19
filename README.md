@@ -1,62 +1,414 @@
-# What
+# HTTP/SOCKS Proxy for iPhone
 
-A simple HTTP/SOCKS proxy designed to run on Pythonista on iOS, letting you fake-tether your devices to a phone. 
+A lightweight HTTP and SOCKS5 proxy that runs directly on an iPhone and lets another computer route traffic through a selected network interface on the phone.
 
-# Installation
+This project was built through human-directed AI development. AI tools handled much of the coding, debugging, testing, and code review, while real-device testing and design decisions were performed manually.
 
-- Install Pythonista from the [App Store](https://apps.apple.com/us/app/pythonista-3/id1085978097). It's a paid app, but it's worth every penny if you are a power user.
-- Download the code from [GitHub](https://github.com/nneonneo/iOS-SOCKS-Server/archive/master.zip).
-- Open the Files app, navigate to Downloads, and tap on the zip file to uncompress it.
-- Move the resulting `iOS-SOCKS-Server` folder to the Pythonista iCloud directory
-- Open Pythonista, navigate to iCloud, `iOS-SOCKS-Server` and open the `socks5.py` script.
-- Optionally, you can tap on the wrench and select `Shortcuts...` to add the script to your home screen. 
+<img width="603" height="1311" alt="socks5" src="https://github.com/user-attachments/assets/9d885b1f-c28d-4f1f-8f14-5005a7ece84f" />
 
-# Running
+---
 
-- Connect your devices to the same WiFi network as your phone. If there's no suitable network, you can create a computer-to-computer (ad-hoc) network using your laptop and connect to it with your phone.
-- Open the home screen shortcut (if you made one), or open the `socks5.py` script in Pythonista and hit Run. 
-- Choose **Stable Mode (recommended)** for interface monitoring, verified startup,
-  confirmed health checks, recovery from true listener/outbound failures, and the
-  Recover button. An inbound local-link interface that is still present but has no
-  IPv4 is monitored passively instead of being restarted in a loop. Choose **Legacy Mode**
-  to retain the original UI and server manager. You can also run
-  `legacy_socks5.py` to open the original mode directly.
-- Point your devices at the PAC URL (also called script URL, script address, etc.), or configure them to use the SOCKS proxy listed.
-    - For iOS devices: open Settings, tap on Wi-Fi, tap on the (i) icon next to the network, scroll down to HTTP Proxy, tap on Configure Proxy, select Automatic, and enter the PAC URL as displayed in Pythonista in the URL field (the URL will look like http://123.123.123.123:8080/wpad.dat).
-    - For macOS: open System Preferences -> Network, click on Wi-Fi, hit Advanced..., and under Proxies check SOCKS Proxy and set the host:port to the SOCKS Address as displayed in Pythonista (this will be of the form 123.123.123.123:9876).
-        - If you are using an ad-hoc Wi-Fi network (i.e. Wi-Fi menu -> Create Network), you will need to do some extra setup here. Under the TCP/IP tab, copy the existing 169.254.y.z IPv4 address, then switch Configure IPv4 to Manually, enter the 169.254.y.z IP address in both IPv4 Address and Router, and enter 255.255.0.0 as Subnet Mask. Under the DNS tab, add 169.254.y.z to the DNS Servers list.
-        - Make sure you set proxy settings in any other application that is not using the system proxy settings.
-    - For Windows or Linux, please follow the appropriate instructions for configuring a proxy on your system. It is recommended that you use the PAC URL if possible (also called a setup script or automatic configuration script).
-        - On Windows, you may consider using the [SSTap](https://sourceforge.net/projects/sstap/) project to force all connections to go through the proxy. Disclaimer: this project does not have any affiliation with SSTap and cannot provide support for any issues that arise from its use.
-    - For Android: open Settings, Wi-Fi, select your network, expand the Advanced Settings, change the proxy setting to Manual, and enter the host and port for the *HTTP proxy*. Note that SOCKS proxy support on Android is limited, even when using the PAC URL, so the HTTP proxy is recommended.
-        - Many applications on Android do not respect proxy settings, unfortunately, and in those cases you will have to configure the apps manually or use an app like Proxifier to force apps to use the proxy.
+# Quick Start
 
-# Why
+## 1. Connect the phone to your computer
 
-Recently, while travelling, I found out that Google Fi doesn't support tethering on iOS (I guess it's a feature they want to keep Android-exclusive or something?). Since my phone has a nice, fast, unblocked connection, I wanted to let my computer access it too.
+Connect the iPhone using USB, hotspot, or another local network connection.
 
-I previously wrote [Socks5-iOS](https://github.com/nneonneo/socks5-ios) for doing exactly this, but it turned out to be quite cumbersome to deploy and modify. Plus, the app expires frequently (if you don't have an iOS developer account), which makes it annoying if you need it in a pinch. Enter Pythonista - an App Store app which puts a complete Python interpreter on iOS.
+The computer only needs a local path to reach the phone.
 
-This script can be used to implement a functional alternative to tethering, which I refer to fake-tethering. Fake-tethering has some substantial advantages over standard iOS tethering. It works even when carriers ban tethering, and it bypasses limits set on tethering speed since all connections originate from the phone.
+For the USB setup, the connection may create a local address similar to:
 
-While it's easiest to use this with websites, it's actually possible to tunnel any TCP connection over a SOCKS proxy. For example, here's how you would proxy an SSH connection:
+```text
+169.254.x.x
+```
 
-`ssh -o ProxyCommand='nc -X 5 -x <IP>:9876 %h %p' user@host`
+The exact address varies between devices and connections.
 
-# Troubleshooting
+---
 
-## Doesn't work with an ad-hoc network on macOS
+## 2. Run the proxy on the phone
 
-macOS appears to incorrectly assess the Internet as unreachable with an ad-hoc network, even if a proxy is configured. A workaround for this, tested on macOS 10.14, is described under [issue #1](https://github.com/nneonneo/iOS-SOCKS-Server/issues/1#issuecomment-583989079).
+Run:
 
+```text
+socks5.py
+```
 
-## Revised 4.2 note: addressless en2
+Choose:
 
-On the tested iPhone/Mac setup, `en2` receives its `169.254/16` client-reachable
-IPv4 when the wired iPhone↔Mac local link is established. If `en2` remains
-present but has no IPv4, Stable Mode reports `WAITING_FOR_LOCAL_LINK` and keeps
-the wildcard listeners alive. Proxy resets are intentionally suppressed because
-real-device testing showed they do not recreate that external link. When the
-link returns and iOS restores the IPv4, Stable Mode resumes automatically.
+```text
+Stable Mode
+```
 
-See `REVISED4_2_CHANGES.md` for the listener-health confirmation changes as well.
+Select the outbound interface you want the proxy to use.
+
+For example, cellular may appear as:
+
+```text
+pdp_ip0
+```
+
+Wi-Fi may appear as an `en*` interface such as:
+
+```text
+en0
+```
+
+Interface names can vary, so use the interface information shown by the program rather than assuming a fixed name.
+
+Then press:
+
+```text
+Start
+```
+
+---
+
+## 3. Find the phone's local IP
+
+Use the local address shown by the proxy.
+
+For a USB/local connection, it may look similar to:
+
+```text
+169.254.x.x
+```
+
+Do not hard-code this address. Use the address assigned to your current connection.
+
+---
+
+## 4. Configure SOCKS5 on the computer
+
+The default SOCKS5 port is:
+
+```text
+9876
+```
+
+Configure the computer with:
+
+```text
+SOCKS5 Host: <PHONE_LOCAL_IP>
+Port: 9876
+```
+
+For example:
+
+```text
+Host: 169.254.123.45
+Port: 9876
+```
+
+On macOS:
+
+```text
+System Settings
+→ Network
+→ Active Connection
+→ Details
+→ Proxies
+→ SOCKS Proxy
+```
+
+Enter the phone's local IP and port `9876`.
+
+Apply the settings.
+
+That's it.
+
+---
+
+# Default Ports
+
+| Service | Port |
+|---|---:|
+| SOCKS5 | `9876` |
+| HTTP Proxy | `9877` |
+| WPAD / PAC | `8088` |
+
+SOCKS5 is recommended for general use.
+
+---
+
+# How It Works
+
+The main idea is simple:
+
+**the connection used to reach the phone does not have to be the same connection the phone uses to reach the Internet.**
+
+A normal connection might look like this:
+
+```text
+Mac / PC
+    │
+    │ USB local link
+    ▼
+ iPhone
+    │
+    │ HTTP / SOCKS Proxy
+    ▼
+Selected iPhone interface
+    │
+    ▼
+ Internet
+```
+
+The computer is not asking iOS to directly route all of its traffic.
+
+Instead, the computer connects to a proxy server running on the phone.
+
+When the proxy receives a request, the phone creates a new outbound connection on behalf of the computer.
+
+This produces two separate network paths:
+
+```text
+INBOUND
+
+Computer
+   │
+   │ USB / hotspot / local network
+   ▼
+iPhone proxy
+```
+
+and:
+
+```text
+OUTBOUND
+
+iPhone proxy
+   │
+   │ Selected interface
+   ▼
+Internet
+```
+
+That separation is the important part of the project.
+
+---
+
+## Why USB Is Useful
+
+The USB connection is especially useful when the phone is already connected to a real Wi-Fi router.
+
+Normally, an iPhone does not behave like a general-purpose Wi-Fi repeater where it simply receives Internet from a Wi-Fi router and rebroadcasts that same Wi-Fi connection through Personal Hotspot.
+
+Personal Hotspot is primarily designed around sharing the phone's cellular connection.
+
+That creates a problem if the goal is:
+
+```text
+Mac
+ ↓
+iPhone
+ ↓
+Real Wi-Fi router
+ ↓
+Internet
+```
+
+The Mac needs a way to reach the phone, but using the phone's Wi-Fi radio as the connection between the Mac and phone can interfere with the phone remaining connected to the real router.
+
+USB provides another local path.
+
+Instead of using Wi-Fi for both sides:
+
+```text
+Mac
+ ↓
+Wi-Fi
+ ↓
+iPhone
+ ↓
+Wi-Fi
+ ↓
+Router
+```
+
+the setup becomes:
+
+```text
+Mac
+ │
+ │ USB
+ ▼
+iPhone
+ │
+ │ Wi-Fi
+ ▼
+Router
+ │
+ ▼
+Internet
+```
+
+USB is therefore not the Internet connection itself.
+
+It is simply the local link used to deliver proxy requests from the computer to the phone.
+
+The phone's normal Wi-Fi interface can remain available for outbound traffic.
+
+---
+
+## The iOS Wi-Fi Interface
+
+On many iOS configurations, the normal Wi-Fi interface appears as an `en*` interface, commonly something such as:
+
+```text
+en0
+```
+
+When the phone is connected to a real Wi-Fi router, that interface has the address and route associated with the Wi-Fi network.
+
+The proxy can use that interface's source address when creating outbound connections.
+
+Conceptually:
+
+```text
+Mac
+ │
+ │ USB
+ ▼
+iPhone local USB interface
+ │
+ │ proxy receives request
+ ▼
+HTTP / SOCKS proxy
+ │
+ │ bind outbound connection
+ ▼
+en0 / Wi-Fi
+ │
+ ▼
+Wi-Fi Router
+ │
+ ▼
+Internet
+```
+
+So the Mac itself does not need direct access to the router's connection through iOS tethering.
+
+It only needs to reach the proxy.
+
+The proxy is already running inside the phone, where the real Wi-Fi interface is available.
+
+---
+
+## Cellular Works the Same Way
+
+The same design can be used with cellular.
+
+For example:
+
+```text
+Mac
+ │
+ │ USB
+ ▼
+iPhone
+ │
+ │ SOCKS5
+ ▼
+pdp_ip0 / Cellular
+ │
+ ▼
+Internet
+```
+
+The computer still connects locally over USB.
+
+Only the proxy's outbound interface changes.
+
+This is why the project can expose multiple possible outbound interfaces without changing the computer-side proxy configuration.
+
+---
+
+## Why a Proxy Is Needed
+
+Without a proxy, the computer normally depends on iOS itself to perform routing or tethering.
+
+With the proxy, the computer sends application connections to a program running directly on the phone.
+
+For example, instead of the Mac directly opening:
+
+```text
+Mac → example.com
+```
+
+it effectively does:
+
+```text
+Mac
+ ↓
+SOCKS5 request
+ ↓
+iPhone proxy
+ ↓
+proxy opens example.com
+ ↓
+Internet
+```
+
+The Internet server sees the connection created by the iPhone.
+
+This also allows the program to control which available phone interface is used for that outbound connection.
+
+---
+
+## Source Binding
+
+The proxy does not simply ask iOS to use whichever route happens to be the system default.
+
+For supported connections, it binds outbound TCP, UDP, and DNS traffic to the source address associated with the selected interface.
+
+Conceptually:
+
+```text
+Selected interface
+        │
+        ▼
+   Source address
+        │
+        ▼
+Proxy outbound socket
+        │
+        ▼
+     Internet
+```
+
+This is what allows the inbound USB connection and outbound Wi-Fi or cellular connection to remain separate.
+
+---
+
+# Security
+
+This project is intended primarily for personal use on trusted local connections.
+
+The proxy may listen on:
+
+```text
+0.0.0.0
+```
+
+This makes it possible for the service to remain reachable when iOS local interfaces change, but it can also make the proxy reachable by other devices on the same network.
+
+There is currently no proxy authentication.
+
+Do not expose the proxy to an untrusted network unless you understand the consequences.
+
+The project contains no telemetry, analytics, advertising, credential collection, or hidden remote-control service.
+
+---
+
+# License
+
+MIT License.
+
+---
+
+# Disclaimer
+
+This project is provided as-is for networking experimentation and personal proxy use.
+
+Users are responsible for complying with applicable laws, network policies, carrier terms, and service terms.
