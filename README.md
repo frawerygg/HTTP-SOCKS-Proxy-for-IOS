@@ -2,8 +2,6 @@
 
 A lightweight HTTP and SOCKS5 proxy that runs directly on an iPhone and lets another computer route traffic through a selected network interface on the phone.
 
-This project was built through human-directed AI development. AI tools handled much of the coding, debugging, testing, and code review, while real-device testing and design decisions were performed manually.
-
 <p align="center">
   <img
     src="https://github.com/user-attachments/assets/9d885b1f-c28d-4f1f-8f14-5005a7ece84f"
